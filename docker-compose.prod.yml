@@ -1,0 +1,114 @@
+version: '3.8'
+
+services:
+  # --- CENTRAL DATABASE ---
+  postgres-db:
+    image: postgres:16-alpine
+    container_name: unibites-postgres
+    restart: always
+    environment:
+      POSTGRES_DB: unibites_db
+      POSTGRES_USER: unibites_user
+      POSTGRES_PASSWORD: unibites_password
+    ports:
+      - "127.0.0.1:5432:5432" # Safe local port binding
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - unibites-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U unibites_user -d unibites_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+  # --- CORE MICROSERVICE (Python - FastAPI) ---
+  api-python-core:
+    build:
+      context: ./Delivery-Backend-Microservices/api-python-core
+      dockerfile: Dockerfile
+    container_name: unibites-python-core
+    restart: always
+    environment:
+      - PORT=8001
+      - DATABASE_URL=postgresql://unibites_user:unibites_password@postgres-db:5432/unibites_db
+    depends_on:
+      postgres-db:
+        condition: service_healthy
+    networks:
+      - unibites-network
+
+  # --- WALLET MICROSERVICE (Java - Spring Boot) ---
+  api-java-wallet:
+    build:
+      context: ./Delivery-Backend-Microservices/api-java-wallet
+      dockerfile: Dockerfile
+    container_name: unibites-java-wallet
+    restart: always
+    environment:
+      - SERVER_PORT=8002
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres-db:5432/unibites_db
+      - SPRING_DATASOURCE_USERNAME=unibites_user
+      - SPRING_DATASOURCE_PASSWORD=unibites_password
+      - SPRING_JPA_HIBERNATE_DDL_AUTO=update
+    depends_on:
+      postgres-db:
+        condition: service_healthy
+    networks:
+      - unibites-network
+
+  # --- CHAT MICROSERVICE (Go - WebSockets) ---
+  api-go-chat:
+    build:
+      context: ./Delivery-Backend-Microservices/api-go-chat
+      dockerfile: Dockerfile
+    container_name: unibites-go-chat
+    restart: always
+    environment:
+      - PORT=8003
+      - DATABASE_URL=postgres://unibites_user:unibites_password@postgres-db:5432/unibites_db?sslmode=disable
+    depends_on:
+      postgres-db:
+        condition: service_healthy
+    networks:
+      - unibites-network
+
+  # --- FRONTEND CLIENT (React PWA) ---
+  unibites-frontend:
+    build:
+      context: ./Delivery-PWA-Front
+      dockerfile: Dockerfile
+    container_name: unibites-frontend
+    restart: always
+    depends_on:
+      - api-python-core
+      - api-go-chat
+    networks:
+      - unibites-network
+
+  # --- REVERSE PROXY GATEWAY (Nginx) ---
+  nginx:
+    image: nginx:alpine
+    container_name: unibites-nginx
+    restart: always
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+    depends_on:
+      - unibites-frontend
+      - api-python-core
+      - api-go-chat
+      - api-java-wallet
+    networks:
+      - unibites-network
+
+networks:
+  unibites-network:
+    name: unibites_network
+    driver: bridge
+
+volumes:
+  postgres_data:
+    name: unibites_postgres_data

@@ -1,0 +1,244 @@
+@import "tailwindcss";
+
+/* Temas y Variables Nativas de Tailwind CSS v4 */
+@theme {
+  --color-primary-50: #f5f7ff;
+  --color-primary-100: #ebf0ff;
+  --color-primary-200: #d6e0ff;
+  --color-primary-300: #b3c7ff;
+  --color-primary-400: #80a3ff;
+  --color-primary-500: #4d7cff;
+  --color-primary-600: #2550e6;
+  --color-primary-700: #1b3cb3;
+  --color-primary-800: #152f8c;
+  --color-primary-900: #112566;
+
+  --color-secondary-50: #fffcf5;
+  --color-secondary-100: #fff8eb;
+  --color-secondary-200: #ffeed6;
+  --color-secondary-300: #ffdcb3;
+  --color-secondary-400: #ffc580;
+  --color-secondary-500: #ff9800;
+  --color-secondary-600: #e68100;
+  --color-secondary-700: #b36200;
+  --color-secondary-800: #8c4b00;
+  --color-secondary-900: #663500;
+
+  --color-campus-green: #10b981;
+  --color-campus-red: #ef4444;
+  --color-campus-gray: #f3f4f6;
+
+  --animate-bounce-subtle: bounceSubtle 2s infinite;
+  --animate-pulse-subtle: pulseSubtle 2s infinite;
+  --animate-fade-in: fadeIn 0.25s ease-out;
+  --animate-slide-up: slideUp 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+  --animate-slide-left: slideLeft 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+
+  @keyframes bounceSubtle {
+    0%, 100% { transform: translateY(-2px); }
+    50% { transform: translateY(2px); }
+  }
+  @keyframes pulseSubtle {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.85; }
+  }
+  @keyframes fadeIn {
+    0% { opacity: 0; }
+    100% { opacity: 1; }
+  }
+  @keyframes slideUp {
+    0% { transform: translateY(16px); opacity: 0; }
+    100% { transform: translateY(0); opacity: 1; }
+  }
+  @keyframes slideLeft {
+    0% { transform: translateX(100%); }
+    100% { transform: translateX(0); }
+  }
+}
+
+/* Estilos de Tipografía Premium y Overlays */
+@layer base {
+  body {
+    font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    overscroll-behavior-y: contain; /* Evita pull-to-refresh indeseado en móviles */
+    -webkit-tap-highlight-color: transparent; /* Quita el recuadro gris de tap en iOS/Android */
+  }
+  
+  h1, h2, h3, h4, h5, h6 {
+    font-family: 'Outfit', sans-serif;
+  }
+}
+
+/* Ocultar barra de desplazamiento manteniendo funcionalidad */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+/* Efectos Glassmorphic */
+.glass-light {
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.4);
+}
+
+.glass-dark {
+  background: rgba(15, 23, 42, 0.85);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+/* Animaciones y Efectos Premium */
+.tap-effect {
+  transition: transform 0.1s ease;
+}
+.tap-effect:active {
+  transform: scale(0.96);
+}
+
+.card-hover {
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.card-hover:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 20px -5px rgba(0, 0, 0, 0.08);
+}
+
+/* Sombra de mockup móvil realista */
+.phone-shadow {
+  box-shadow: 0px 25px 50px -12px rgba(0, 0, 0, 0.5);
+}
+
+/* Custom pulse for online states */
+.pulse-green {
+  box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7);
+  animation: pulseGreen 2s infinite;
+}
+
+@keyframes pulseGreen {
+  0% {
+    box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7);
+  }
+  70% {
+    box-shadow: 0 0 0 10px rgba(16, 185, 129, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(16, 185, 129, 0);
+  }
+}
+
+/* ==========================================================================
+   SISTEMA DE ESCALA TIPOGRÁFICA DE ALTA LEGIBILIDAD Y FLUIDA (ESTILO YOUTUBE)
+   ========================================================================== */
+
+/* 1. Reglas Base Globales y Escalado Raíz */
+html {
+  font-size: 14px; /* Móvil base */
+}
+
+@media (min-width: 768px) {
+  html {
+    font-size: 16px; /* Tablet / Desktop pequeño */
+  }
+}
+
+@media (min-width: 1200px) {
+  html {
+    font-size: 17.5px; /* Monitores grandes / Desktop */
+  }
+}
+
+body {
+  font-size: 1rem !important; /* Dinámico según el root */
+  line-height: 1.5 !important;
+}
+
+p, span, div, li, a, td, th {
+  line-height: 1.5;
+}
+
+/* 2. Controles Interactivos (Mínimo 1rem, Font-weight 500) */
+input, select, textarea, button {
+  font-size: 1rem !important;
+  font-weight: 500 !important;
+  line-height: 1.5 !important;
+}
+
+/* 3. Sobrescribir Utilidades de Texto para Uniformizar la Escala en Escritorio */
+
+/* A. Textos Secundarios, Descripciones o Subtítulos -> 0.875rem (14px en desktop) */
+.text-xs,
+.text-\[7px\],
+.text-\[7\.5px\],
+.text-\[8px\],
+.text-\[8\.5px\],
+.text-\[9px\],
+.text-\[9\.5px\],
+.text-\[10px\],
+.text-\[11px\],
+.text-\[12px\] {
+  font-size: 0.875rem !important;
+  line-height: 1.5 !important;
+}
+
+/* B. Textos de Contenido Base e Interactivos -> 1rem (16px en desktop) */
+.text-sm,
+.text-base,
+.text-\[13px\],
+.text-\[14px\],
+.text-\[15px\],
+.text-\[16px\] {
+  font-size: 1rem !important;
+  line-height: 1.5 !important;
+}
+
+/* C. Títulos de Tarjetas y Secciones -> 1.125rem a 1.25rem (18px - 20px en desktop) */
+.text-md,
+.text-lg,
+.text-\[17px\],
+.text-\[18px\],
+.text-\[19px\] {
+  font-size: 1.125rem !important;
+  font-weight: 600 !important;
+  line-height: 1.4 !important;
+}
+
+.text-xl,
+.text-\[20px\],
+.text-\[21px\],
+.text-\[22px\] {
+  font-size: 1.25rem !important;
+  font-weight: 600 !important;
+  line-height: 1.4 !important;
+}
+
+/* D. Título Principal de la App (UniBites) y Títulos de Secciones Mayores -> 1.5rem a 1.75rem (24px - 28px en desktop) */
+.text-2xl,
+.text-\[23px\],
+.text-\[24px\],
+.text-\[25px\] {
+  font-size: 1.5rem !important;
+  font-weight: 700 !important;
+  line-height: 1.3 !important;
+}
+
+.text-3xl,
+.text-4xl,
+.text-5xl,
+.text-\[26px\],
+.text-\[27px\],
+.text-\[28px\],
+.text-\[30px\],
+.text-\[32px\],
+.text-\[36px\] {
+  font-size: 1.75rem !important;
+  font-weight: 850 !important;
+  line-height: 1.2 !important;
+}
+
+

@@ -1,0 +1,30 @@
+{
+  "short_name": "UniBites",
+  "name": "UniBites - Delivery Universitario Colaborativo",
+  "description": "Economía colaborativa para reparto de comida dentro del campus universitario.",
+  "icons": [
+    {
+      "src": "favicon.svg",
+      "sizes": "64x64 32x32 24x24 16x16",
+      "type": "image/svg+xml"
+    },
+    {
+      "src": "icon-192.png",
+      "type": "image/png",
+      "sizes": "192x192",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "icon-512.png",
+      "type": "image/png",
+      "sizes": "512x512",
+      "purpose": "any maskable"
+    }
+  ],
+  "start_url": "/",
+  "background_color": "#4d7cff",
+  "theme_color": "#4d7cff",
+  "display": "standalone",
+  "orientation": "portrait",
+  "scope": "/"
+}
