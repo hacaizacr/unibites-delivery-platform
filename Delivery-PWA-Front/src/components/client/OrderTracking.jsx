@@ -35,7 +35,7 @@ export const OrderTracking = ({ orderId, onBack }) => {
   const socketAttemptsRef = useRef(0);
 
   useEffect(() => {
-    if (order && (order.status === 'finalizado_confirmado' || order.status === 'entregado_repartidor')) {
+    if (order && order.status === 'finalizado_confirmado') {
       const rated = localStorage.getItem(`rated_order_${orderId}`);
       if (!rated) {
         setShowRatingModal(true);
@@ -712,10 +712,6 @@ export const OrderTracking = ({ orderId, onBack }) => {
                   if (res.success) {
                     localStorage.setItem(`rated_order_${orderId}`, 'true');
                     setShowRatingModal(false);
-                    // Confirmar recepción automáticamente si el repartidor ya lo entregó
-                    if (order.status === 'entregado_repartidor') {
-                      await changeOrderStatus(order.id, 'finalizado_confirmado');
-                    }
                   }
                 }}
                 className="w-full bg-primary-500 hover:bg-primary-600 text-white rounded-2xl py-3 text-xs font-extrabold transition-all flex items-center justify-center gap-1.5 shadow-lg shadow-primary-500/10 tap-effect disabled:opacity-50"
@@ -729,10 +725,6 @@ export const OrderTracking = ({ orderId, onBack }) => {
                   // Permitir omitir guardando el estado para que no aparezca de nuevo
                   localStorage.setItem(`rated_order_${orderId}`, 'skipped');
                   setShowRatingModal(false);
-                  // Confirmar recepción automáticamente si el repartidor ya lo entregó
-                  if (order.status === 'entregado_repartidor') {
-                    await changeOrderStatus(order.id, 'finalizado_confirmado');
-                  }
                 }}
                 className="w-full bg-transparent hover:bg-slate-850 text-slate-400 hover:text-slate-350 rounded-2xl py-2.5 text-xs font-bold transition-all tap-effect"
               >

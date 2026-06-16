@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useApp } from '../../context/AppContext';
 import { User, Mail, Lock, ShieldCheck, ArrowRight, ArrowLeft, Phone } from 'lucide-react';
+import logoUniBites from '../../assets/logo_unibites.png';
 
 export const StudentLogin = () => {
   const { loginStudent, registerStudent, setShowWelcome } = useApp();
@@ -72,8 +73,12 @@ export const StudentLogin = () => {
       
       {/* Logo e Introducción */}
       <div className="text-center mb-6 lg:mb-10 shrink-0 mt-6 lg:mt-12">
-        <div className="w-16 h-16 lg:w-20 lg:h-20 lg:rounded-3xl rounded-2xl bg-gradient-to-tr from-primary-600 to-primary-400 flex items-center justify-center text-white mx-auto mb-4 lg:mb-6 shadow-lg shadow-primary-500/25">
-          <span className="font-extrabold text-2xl lg:text-4xl font-sans tracking-tighter">U</span>
+        <div className="flex items-center justify-center mb-4 lg:mb-6">
+          <img 
+            src={logoUniBites} 
+            alt="UniBites Logo" 
+            className="w-20 h-20 lg:w-24 lg:h-24 object-contain drop-shadow-[0_4px_8px_rgba(37,99,235,0.15)]" 
+          />
         </div>
         <h2 className="text-xl lg:text-3xl font-extrabold text-white">Bienvenido a UniBites</h2>
         <p className="text-xs lg:text-sm text-slate-500 mt-1 lg:mt-3 max-w-[85%] mx-auto leading-relaxed">

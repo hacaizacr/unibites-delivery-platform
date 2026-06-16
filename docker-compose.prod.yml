@@ -79,6 +79,9 @@ services:
     build:
       context: ./Delivery-PWA-Front
       dockerfile: Dockerfile
+      args:
+        - VITE_API_URL=https://unibites.duckdns.org
+        - VITE_WS_URL=wss://unibites.duckdns.org
     container_name: unibites-frontend
     restart: always
     depends_on:
@@ -94,8 +97,10 @@ services:
     restart: always
     ports:
       - "80:80"
+      - "443:443"
     volumes:
       - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - /etc/letsencrypt:/etc/letsencrypt:ro
     depends_on:
       - unibites-frontend
       - api-python-core
