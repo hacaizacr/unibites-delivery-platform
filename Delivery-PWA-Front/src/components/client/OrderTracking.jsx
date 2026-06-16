@@ -7,6 +7,7 @@ import {
 } from 'lucide-react';
 
 const CAMPUS_UIDE_CENTER = [-0.2114, -78.4905];
+const DELIVERY_SPOT_COORDS = [-0.2459855, -78.4709077];
 
 export const OrderTracking = ({ orderId, onBack }) => {
   const { orders, currentStudent, fetchOrderDetails, changeOrderStatus, archiveOrder, rateRestaurant } = useApp();
@@ -75,7 +76,7 @@ export const OrderTracking = ({ orderId, onBack }) => {
 
   // Carga inicial del estado del pedido (el polling global se encarga de mantenerlo al día)
   useEffect(() => {
-    if (!orderId || !fetchOrderDetails) return;
+    if (!orderId || !fetchOrderDetails || isArchived) return;
     const currentOrder = orders.find(o => o.id === orderId || o.db_id === orderId);
     
     // Si ya lo tenemos en la lista local, dejamos que el polling global o websocket lo actualice,
@@ -85,14 +86,14 @@ export const OrderTracking = ({ orderId, onBack }) => {
     fetchOrderDetails(orderId).then((res) => {
       if (!res) {
         console.warn("Orden no encontrada al cargar detalles. Redirigiendo...");
-        onBack();
+        if (!isArchived) onBack();
       }
     }).catch((err) => {
       console.error("Error al cargar detalles del pedido:", err);
-      onBack();
+      if (!isArchived) onBack();
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [orderId, fetchOrderDetails, onBack]);
+  }, [orderId, fetchOrderDetails, isArchived]); // Eliminado onBack para evitar re-ejecuciones en renderizados del padre
 
   // 2. CONEXIÓN WEB SOCKET EN TIEMPO REAL (Go Chat - Puerto 8003)
   useEffect(() => {
@@ -219,7 +220,7 @@ export const OrderTracking = ({ orderId, onBack }) => {
 
   // 2.1 INICIALIZAR Y GESTIONAR MAPA LEAFLET DE CLIENTE (en_camino)
   useEffect(() => {
-    let checkInterval = null;
+    let mapTimeout = null;
 
     const initMap = () => {
       // Si el pedido no está en camino, destruir el mapa si existía
@@ -231,19 +232,23 @@ export const OrderTracking = ({ orderId, onBack }) => {
           delivererMarkerRef.current = null;
           destinationMarkerRef.current = null;
         }
-        return false;
+        return;
       }
 
       // Si el mapa ya está inicializado o no hay contenedor en el DOM, no hacer nada
       if (!window.L || mapInstanceRef.current || !mapRef.current) {
-        return false;
+        // Si no está listo pero está en camino, re-intentar rápido en 50ms para acoplarse al montado del DOM
+        if (orderRef.current?.status === 'en_camino' && !mapInstanceRef.current) {
+          mapTimeout = setTimeout(initMap, 50);
+        }
+        return;
       }
 
       const L = window.L;
       console.log("Inicializando mapa de Leaflet en OrderTracking (vacío)...");
       
       const map = L.map(mapRef.current, {
-        center: CAMPUS_UIDE_CENTER,
+        center: DELIVERY_SPOT_COORDS,
         zoom: 16,
         zoomControl: false
       });
@@ -270,13 +275,13 @@ export const OrderTracking = ({ orderId, onBack }) => {
       });
 
       // Marcador de destino
-      const destMarker = L.marker(CAMPUS_UIDE_CENTER, { icon: destinationIcon })
+      const destMarker = L.marker(DELIVERY_SPOT_COORDS, { icon: destinationIcon })
         .addTo(map)
         .bindPopup(`<strong class="text-slate-955">Tu Punto de Entrega</strong><br/><span class="text-slate-700 text-[10px]">${orderRef.current?.clientSpot || 'Campus UIDE'}</span>`)
         .openPopup();
 
-      // Marcador del repartidor (inicialmente offset un poco si no hay GPS aún)
-      const startPos = repartidorCoordsRef.current ? [repartidorCoordsRef.current.lat, repartidorCoordsRef.current.lng] : [-0.2125, -78.4915];
+      // Marcador del repartidor (inicialmente cerca del punto de entrega si no hay GPS aún)
+      const startPos = repartidorCoordsRef.current ? [repartidorCoordsRef.current.lat, repartidorCoordsRef.current.lng] : [-0.2468, -78.4720];
       const delMarker = L.marker(startPos, { icon: delivererIcon })
         .addTo(map)
         .bindPopup(`<strong class="text-slate-955">Repartidor Colaborativo</strong>`);
@@ -285,33 +290,32 @@ export const OrderTracking = ({ orderId, onBack }) => {
       destinationMarkerRef.current = destMarker;
       delivererMarkerRef.current = delMarker;
 
-      const bounds = L.latLngBounds([CAMPUS_UIDE_CENTER, startPos]);
-      map.fitBounds(bounds, { padding: [40, 40] });
-
-      return true;
+      // Programar redibujado de tamaño y encuadre para asegurar el pintado instantáneo sin parches grises
+      setTimeout(() => {
+        if (mapInstanceRef.current) {
+          mapInstanceRef.current.invalidateSize();
+          const bounds = L.latLngBounds([DELIVERY_SPOT_COORDS, startPos]);
+          mapInstanceRef.current.fitBounds(bounds, { padding: [40, 40] });
+        }
+      }, 150);
     };
 
     // Intentar inicializar inmediatamente
     initMap();
 
-    // Establecer un intervalo de monitoreo para inicializar o destruir según el estado cambie dinámicamente
-    checkInterval = setInterval(() => {
-      initMap();
-    }, 1000);
-
     return () => {
-      if (checkInterval) {
-        clearInterval(checkInterval);
+      if (mapTimeout) {
+        clearTimeout(mapTimeout);
       }
       if (mapInstanceRef.current) {
-        console.log("Limpiando mapa de Leaflet en desmonte...");
+        console.log("Limpiando mapa de Leaflet en desmonte o cambio de estado...");
         mapInstanceRef.current.remove();
         mapInstanceRef.current = null;
         delivererMarkerRef.current = null;
         destinationMarkerRef.current = null;
       }
     };
-  }, []);
+  }, [order?.status]);
 
   // Actualizar marcador cuando cambie repartidorCoords
   useEffect(() => {
@@ -321,7 +325,7 @@ export const OrderTracking = ({ orderId, onBack }) => {
       delivererMarkerRef.current.setLatLng(newPos);
 
       // Reajustar límites de forma suave
-      const bounds = L.latLngBounds([CAMPUS_UIDE_CENTER, newPos]);
+      const bounds = L.latLngBounds([DELIVERY_SPOT_COORDS, newPos]);
       mapInstanceRef.current.fitBounds(bounds, { padding: [40, 40] });
     }
   }, [repartidorCoords]);
@@ -466,7 +470,9 @@ export const OrderTracking = ({ orderId, onBack }) => {
             setIsArchived(true);
             const res = await archiveOrder(order.id);
             if (res.success) {
-              onBack(); // Redirección forzada e inmediata
+              setTimeout(() => {
+                onBack(); // Redirección tras un breve delay para evitar parpadeos bruscos
+              }, 600);
             } else {
               setIsArchived(false);
               alert(`Error al archivar: ${res.message || "Error desconocido"}`);

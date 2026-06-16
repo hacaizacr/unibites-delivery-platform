@@ -95,6 +95,28 @@ export const ActiveDelivery = ({ activeOrder }) => {
           // Activar geolocalización oculta si el pedido está en camino
           if (activeOrder.status === 'en_camino' && navigator.geolocation) {
             console.log("Iniciando watchPosition oculto en segundo plano...");
+            
+            // Emitir coordenadas iniciales de forma inmediata al conectar
+            navigator.geolocation.getCurrentPosition(
+              (position) => {
+                if (ws && ws.readyState === WebSocket.OPEN) {
+                  const payload = {
+                    id_pedido: activeOrder.id,
+                    id_remitente: currentStudent.email,
+                    contenido: "location_update",
+                    lat: position.coords.latitude,
+                    lng: position.coords.longitude
+                  };
+                  ws.send(JSON.stringify(payload));
+                  console.log("GPS Oculto: Coordenadas iniciales emitidas:", payload);
+                }
+              },
+              (err) => {
+                console.warn("GPS Error Inicial:", err);
+              },
+              { enableHighAccuracy: true }
+            );
+
             watchId = navigator.geolocation.watchPosition(
               (position) => {
                 if (ws && ws.readyState === WebSocket.OPEN) {
