@@ -33,6 +33,10 @@ services:
     environment:
       - PORT=8001
       - DATABASE_URL=postgresql://unibites_user:unibites_password@postgres-db:5432/unibites_db
+      - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
+      - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
+      - AWS_STORAGE_BUCKET_NAME=${AWS_STORAGE_BUCKET_NAME}
+      - AWS_S3_REGION_NAME=${AWS_S3_REGION_NAME}
     depends_on:
       postgres-db:
         condition: service_healthy
